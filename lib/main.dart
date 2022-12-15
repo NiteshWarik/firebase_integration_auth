@@ -1,11 +1,23 @@
-import 'package:flutter/material.dart';
+import 'dart:math';
 
-void main() {
-  runApp(const MyApp());
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Future<FirebaseApp> _fbApp = Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -24,7 +36,22 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: FutureBuilder(
+        future: _fbApp,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print('You have an error! ${snapshot.error.toString()}');
+            return const Text('Something went wrong');
+          } else if (snapshot.hasData) {
+            return const MyHomePage(title: 'Flutter Demo Home Page');
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+      //const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -51,6 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   void _incrementCounter() {
+    DatabaseReference _testRef = FirebaseDatabase.instance.ref().child('Test');
+    _testRef.set('Hello World ${Random().nextInt(100)}');
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
